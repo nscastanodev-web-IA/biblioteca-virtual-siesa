@@ -1,15 +1,20 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useApp } from '../../store/AppContext';
 import { documentFileUrl } from '../../services/api';
+import { recordDocumentView } from '../../data/recentlyViewed';
 import Layout from '../../components/Layout';
 import { DocTypeBadge, NewBadge } from '../../components/StatusBadge';
 
 export default function DocumentDetail() {
-  const { router, documents, navigate } = useApp();
+  const { router, documents, navigate, currentUser } = useApp();
   const id = router.params?.id;
   const doc = documents.find(d => d.id === id);
   const [feedback, setFeedback] = useState<'yes' | 'no' | null>(null);
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (currentUser && doc) recordDocumentView(currentUser.id, doc.id);
+  }, [currentUser, doc]);
 
   if (!doc) {
     return (

@@ -13,6 +13,8 @@ import type {
   RequestType,
   Priority,
   NotificationChannel,
+  ProfileUpdateInput,
+  PasswordChangeInput,
 } from '../types';
 import {
   ApiError,
@@ -66,6 +68,8 @@ interface AppContextValue {
   logout: () => Promise<void>;
   theme: ThemePreference;
   setTheme: (theme: ThemePreference) => void;
+  updateProfile: (data: ProfileUpdateInput) => Promise<boolean>;
+  changePassword: (data: PasswordChangeInput) => Promise<{ ok: boolean; message: string }>;
   navigate: (page: Page, params?: Record<string, string>) => void;
   refresh: () => Promise<void>;
   markNotificationRead: (id: string) => void;
@@ -118,7 +122,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [theme, setThemeState] = useState<ThemePreference>(() => {
     const stored = localStorage.getItem('siesa-theme');
-    return stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system';
+    // El modo claro es el valor por defecto del entorno de desarrollo.
+    return stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'light';
   });
 
   const errorTimer = useRef<number | null>(null);
@@ -150,6 +155,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setThemeState(nextTheme);
     setCurrentUser(prev => (prev ? { ...prev, themePreference: nextTheme } : prev));
     profileApi.updatePreferences(nextTheme).catch(() => { /* preferencia local, no bloquea */ });
+  }, []);
+
+  const updateProfile = useCallback(async (data: ProfileUpdateInput): Promise<boolean> => {
+    try {
+      const updated = await profileApi.update(data);
+      setCurrentUser(updated);
+      setUsers(prev => mergeUsers(prev, [updated]));
+      return true;
+    } catch (caught) {
+      reportError(caught);
+      return false;
+    }
+  }, [reportError]);
+
+  const changePassword = useCallback(async (data: PasswordChangeInput): Promise<{ ok: boolean; message: string }> => {
+    try {
+      const result = await profileApi.updatePassword(data);
+      return { ok: true, message: result.message ?? 'Contraseña actualizada.' };
+    } catch (caught) {
+      return { ok: false, message: messageOf(caught) };
+    }
   }, []);
 
   const navigate = useCallback((page: Page, params?: Record<string, string>) => {
@@ -452,6 +478,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       currentUser, users, documents, requests, notifications, router,
       booting, error, clearError,
       login, register, logout, navigate, refresh, theme, setTheme,
+      updateProfile, changePassword,
       markNotificationRead, markAllNotificationsRead,
       createRequest, updateRequestStatus, addComment, assignRequest,
       linkDocument, sendToProduction, cancelRequest, addDocument, updateDocument,

@@ -44,6 +44,19 @@ export interface RegistrationData {
   password: string;
 }
 
+export interface ProfileUpdateInput {
+  phone?: string;
+  company?: string;
+  jobTitle?: string;
+  system?: string;
+}
+
+export interface PasswordChangeInput {
+  currentPassword: string;
+  password: string;
+  passwordConfirmation: string;
+}
+
 export type DocumentStatus = 'borrador' | 'publicado' | 'inactivo';
 
 export interface Document {

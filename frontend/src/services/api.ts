@@ -7,7 +7,9 @@ import type {
   Document,
   DocumentRequest,
   Notification,
+  PasswordChangeInput,
   Permissions,
+  ProfileUpdateInput,
   SessionPayload,
   User,
 } from '../types';
@@ -200,9 +202,9 @@ export const notificationsApi = {
 
 export const profileApi = {
   show: () => apiRequest<User>('/profile'),
-  update: (payload: Record<string, unknown>) =>
+  update: (payload: ProfileUpdateInput) =>
     apiRequest<User>('/profile', { method: 'PATCH', body: JSON.stringify(payload) }),
-  updatePassword: (payload: Record<string, unknown>) =>
+  updatePassword: (payload: PasswordChangeInput) =>
     apiRequest<{ message: string }>('/profile/password', { method: 'PATCH', body: JSON.stringify(payload) }),
   updatePreferences: (theme: string) =>
     apiRequest<User>('/profile/preferences', { method: 'PATCH', body: JSON.stringify({ theme }) }),

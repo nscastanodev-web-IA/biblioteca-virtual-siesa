@@ -107,11 +107,13 @@ export default function LoginPage() {
 
       <main className="flex-1 flex items-center justify-center px-5 py-10 sm:px-10">
         <div className={`w-full ${view === 'register' ? 'max-w-2xl' : 'max-w-md'}`}>
-          <img src="/brand/Siesa_Logosimbolo_Azul.svg" alt="Siesa" className="lg:hidden w-28 h-auto mb-10" />
+          <div className="lg:hidden flex items-center gap-3 mb-8">
+            <img src="/brand/Siesa_Logosimbolo_Azul.svg" alt="Siesa" className="w-28 h-auto" />
+          </div>
 
           {view === 'login' && (
             <>
-              <header className="mb-8"><p className="text-sm font-semibold text-navy-600 mb-2">Biblioteca Virtual</p><h2 className="text-3xl font-semibold text-slate-900">Bienvenido</h2><p className="text-slate-500 text-sm mt-2">Ingresa con tu cuenta empresarial.</p></header>
+              <header className="mb-8"><h2 className="text-3xl font-semibold text-slate-900">Bienvenido</h2><p className="text-slate-500 text-sm mt-2">Ingresa con tu cuenta empresarial.</p></header>
               <form onSubmit={handleLogin} className="space-y-5">
                 <div><label className="block text-sm font-medium text-slate-700 mb-1.5">Correo electrónico empresarial</label><input type="email" value={email} onChange={event => setEmail(event.target.value)} placeholder="nombre@empresa.com" className="form-control" autoComplete="email" /></div>
                 <PasswordField label="Contraseña" value={password} onChange={setPassword} autoComplete="current-password" />

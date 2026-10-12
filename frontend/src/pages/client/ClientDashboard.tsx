@@ -1,7 +1,7 @@
 import { useApp } from '../../store/AppContext';
 import Layout from '../../components/Layout';
-import { StatusBadge } from '../../components/StatusBadge';
-import { RECENTLY_VIEWED } from '../../data/mockData';
+import { ComunicadoIcon, DocTypeIcon, ManualIcon, RequestIcon } from '../../components/Icons';
+import { getRecentlyViewedIds } from '../../data/recentlyViewed';
 
 function StatCard({ label, value, color }: { label: string; value: number | string; color: string }) {
   return (
@@ -17,7 +17,7 @@ export default function ClientDashboard() {
   if (!currentUser) return null;
 
   const myRequests = getClientRequests(currentUser.id);
-  const recentlyViewed = (RECENTLY_VIEWED[currentUser.id] ?? [])
+  const recentlyViewed = getRecentlyViewedIds(currentUser.id)
     .map(id => documents.find(d => d.id === id))
     .filter(Boolean) as typeof documents;
 
@@ -39,7 +39,7 @@ export default function ClientDashboard() {
 
   return (
     <Layout title="Inicio">
-      <div className="p-4 lg:p-6 space-y-6 max-w-6xl mx-auto">
+      <div className="p-4 lg:p-6 space-y-6 w-full">
         {/* Welcome */}
         <div className="rounded-2xl overflow-hidden relative"
           style={{ background: 'linear-gradient(120deg, #0f1e38 0%, #1b3a6b 60%, #2558cc 100%)' }}>
@@ -81,16 +81,16 @@ export default function ClientDashboard() {
         {/* Quick access */}
         <div className="grid grid-cols-3 gap-3">
           {[
-            { label: 'Manuales', icon: 'M', page: 'client.library' as const, color: 'bg-navy-50 text-navy-800 border-navy-200' },
-            { label: 'Comunicados', icon: 'C', page: 'client.library' as const, color: 'bg-teal-50 text-teal-800 border-teal-200' },
-            { label: 'Mis solicitudes', icon: 'S', page: 'client.requests' as const, color: 'bg-amber-50 text-amber-800 border-amber-200' },
+            { label: 'Manuales', Icon: ManualIcon, page: 'client.library' as const, color: 'bg-navy-50 text-navy-800 border-navy-200' },
+            { label: 'Comunicados', Icon: ComunicadoIcon, page: 'client.library' as const, color: 'bg-teal-50 text-teal-800 border-teal-200' },
+            { label: 'Solicitudes', Icon: RequestIcon, page: 'client.requests' as const, color: 'bg-amber-50 text-amber-800 border-amber-200' },
           ].map(item => (
             <button
               key={item.label}
               onClick={() => navigate(item.page)}
               className={`flex flex-col items-center gap-2 p-4 rounded-xl border font-medium text-sm transition-all hover:shadow-md ${item.color}`}
             >
-              <span className="text-2xl">{item.icon}</span>
+              <item.Icon className="w-7 h-7" />
               <span>{item.label}</span>
             </button>
           ))}
@@ -112,8 +112,8 @@ export default function ClientDashboard() {
                       onClick={() => navigate('client.document', { id: doc.id })}
                       className="w-full flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 hover:border-navy-300 hover:shadow-sm transition-all text-left"
                     >
-                      <div className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0">
-                        <span className="text-xs font-semibold">PDF</span>
+                      <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center flex-shrink-0">
+                        <DocTypeIcon type={doc.type} className={`w-5 h-5 ${doc.type === 'Manual' ? 'text-navy-700' : 'text-teal-700'}`} />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="text-sm font-medium text-slate-800 truncate">{doc.title}</div>
@@ -144,7 +144,7 @@ export default function ClientDashboard() {
                     className="w-full flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 hover:border-navy-300 hover:shadow-sm transition-all text-left"
                   >
                     <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${doc.type === 'Manual' ? 'bg-navy-50' : 'bg-teal-50'}`}>
-                      <span className="text-xs font-semibold">{doc.type === 'Manual' ? 'M' : 'C'}</span>
+                      <DocTypeIcon type={doc.type} className={`w-5 h-5 ${doc.type === 'Manual' ? 'text-navy-700' : 'text-teal-700'}`} />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">

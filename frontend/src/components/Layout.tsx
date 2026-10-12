@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useApp } from '../store/AppContext';
-import type { Page, ThemePreference } from '../types';
+import type { Page } from '../types';
 
 type IconName = 'home' | 'library' | 'requests' | 'bell' | 'user' | 'documents' | 'help' | 'logout' | 'menu' | 'close';
 
@@ -31,7 +31,7 @@ const CLIENT_NAV: NavItem[] = [
   { label: 'Biblioteca', page: 'client.library', icon: 'library' },
   { label: 'Mis solicitudes', page: 'client.requests', icon: 'requests' },
   { label: 'Notificaciones', page: 'client.notifications', icon: 'bell' },
-  { label: 'Mi perfil', page: 'client.profile', icon: 'user' },
+  { label: 'Mi cuenta', page: 'client.profile', icon: 'user' },
 ];
 
 const AGENT_NAV: NavItem[] = [
@@ -39,6 +39,7 @@ const AGENT_NAV: NavItem[] = [
   { label: 'Solicitudes', page: 'agent.requests', icon: 'requests' },
   { label: 'Documentos', page: 'agent.documents', icon: 'documents' },
   { label: 'Notificaciones', page: 'client.notifications', icon: 'bell' },
+  { label: 'Mi cuenta', page: 'client.profile', icon: 'user' },
 ];
 
 const TOUR_STEPS: Array<{ title: string; body: string; page: Page }> = [
@@ -48,7 +49,7 @@ const TOUR_STEPS: Array<{ title: string; body: string; page: Page }> = [
   { title: 'Solicita un documento', body: 'Si no encuentras lo que necesitas, registra una solicitud desde la biblioteca o Mis solicitudes.', page: 'client.requests' },
   { title: 'Revisa el avance', body: 'Consulta el estado, la línea de tiempo y las respuestas del agente en un solo lugar.', page: 'client.requests' },
   { title: 'Mantente informado', body: 'Las novedades y solicitudes de información aparecen en tu centro de notificaciones.', page: 'client.notifications' },
-  { title: 'Elige tu apariencia', body: 'En la barra superior puedes usar tema claro, oscuro o la preferencia de tu sistema.', page: 'client.profile' },
+  { title: 'Elige tu apariencia', body: 'En Mi cuenta puedes cambiar entre tema claro, oscuro o la preferencia de tu sistema.', page: 'client.profile' },
 ];
 
 function BrandLogo() {
@@ -66,7 +67,7 @@ interface LayoutProps {
 }
 
 export default function Layout({ children, title }: LayoutProps) {
-  const { currentUser, navigate, logout, router, unreadNotificationCount, theme, setTheme } = useApp();
+  const { currentUser, navigate, logout, router, unreadNotificationCount } = useApp();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [tourStep, setTourStep] = useState<number | null>(null);
   const [dontShowAgain, setDontShowAgain] = useState(false);
@@ -142,17 +143,11 @@ export default function Layout({ children, title }: LayoutProps) {
           <button aria-label="Abrir menú" onClick={() => setSidebarOpen(true)} className="lg:hidden text-slate-500 hover:text-navy-800 p-2"><Icon name="menu" /></button>
           {title && <h1 className="text-base font-semibold text-slate-900">{title}</h1>}
           <div className="flex-1" />
-          <label className="sr-only" htmlFor="theme-select">Tema visual</label>
-          <select id="theme-select" value={theme} onChange={event => setTheme(event.target.value as ThemePreference)} className="theme-select text-xs border border-slate-200 rounded-lg px-2 py-2 bg-white text-slate-600">
-            <option value="system">Tema: sistema</option>
-            <option value="light">Tema: claro</option>
-            <option value="dark">Tema: oscuro</option>
-          </select>
           <button aria-label={`Notificaciones, ${unread} sin leer`} onClick={() => navigate('client.notifications')} className="relative p-2 text-slate-500 hover:text-navy-800 hover:bg-slate-100 rounded-lg">
             <Icon name="bell" />
             {unread > 0 && <span className="absolute top-0 right-0 min-w-4 h-4 px-1 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">{unread > 9 ? '9+' : unread}</span>}
           </button>
-          <div className="w-9 h-9 rounded-full bg-navy-800 flex items-center justify-center text-white text-xs font-bold">{currentUser.avatarInitials}</div>
+          <button onClick={() => navigate('client.profile')} aria-label="Ir a Mi cuenta" className="w-9 h-9 rounded-full bg-navy-800 flex items-center justify-center text-white text-xs font-bold hover:bg-navy-900 transition-colors">{currentUser.avatarInitials}</button>
         </header>
         <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
