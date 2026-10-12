@@ -1,0 +1,26 @@
+{
+  "name": "siesa/biblioteca-virtual-backend",
+  "description": "API REST de la Biblioteca Virtual Siesa (PHP 8.2 + MariaDB)",
+  "type": "project",
+  "license": "proprietary",
+  "require": {
+    "php": ">=8.2",
+    "ext-pdo": "*",
+    "ext-pdo_mysql": "*",
+    "ext-fileinfo": "*",
+    "ext-mbstring": "*",
+    "ext-json": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "src/"
+    }
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "scripts": {
+    "serve": "php -S 127.0.0.1:8000 -t public public/index.php",
+    "seed": "php bin/seed-demo.php"
+  }
+}

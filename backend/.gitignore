@@ -1,0 +1,14 @@
+# Entorno
+.env
+.env.local
+.env.*.local
+
+# Dependencias PHP
+/vendor/
+composer.lock
+
+# Archivos subidos y bitácoras (nunca versionar documentos de clientes)
+/storage/documents/*
+!/storage/documents/.gitkeep
+/storage/logs/*
+!/storage/logs/.gitkeep
