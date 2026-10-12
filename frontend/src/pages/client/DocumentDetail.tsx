@@ -34,7 +34,14 @@ export default function DocumentDetail() {
     window.open(documentFileUrl(doc.id, 'download'), '_blank', 'noopener');
   };
 
-  const handleShare = () => {
+  const handleShare = async () => {
+    const path = documentFileUrl(doc.id, 'preview');
+    const link = /^https?:/i.test(path) ? path : `${window.location.origin}${path}`;
+    try {
+      await navigator.clipboard.writeText(link);
+    } catch {
+      // Si el navegador bloquea el portapapeles, igual mostramos la señal visual.
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -71,30 +78,53 @@ export default function DocumentDetail() {
 
             {/* Preview area */}
             <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-              <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-                <span className="text-sm font-semibold text-slate-700" style={{ fontFamily: 'DM Sans, sans-serif' }}>Vista previa</span>
-                <span className="text-xs text-slate-400">{doc.fileSize}</span>
-              </div>
-              <div className="flex flex-col items-center justify-center bg-slate-50 py-16 gap-4">
-                <div className="w-20 h-24 bg-white border border-slate-200 rounded-lg shadow-md flex flex-col items-center justify-center gap-2">
-                  <span className="text-sm font-semibold">PDF</span>
-                  <span className="text-xs font-bold text-red-600">{doc.format}</span>
+              <div className="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <span className="text-sm font-semibold text-slate-700" style={{ fontFamily: 'DM Sans, sans-serif' }}>Vista previa</span>
+                  <span className="text-xs text-slate-400 ml-2">{doc.format} · {doc.fileSize}</span>
                 </div>
-                <p className="text-sm text-slate-500">Haz clic en &ldquo;Descargar&rdquo; para acceder al documento completo</p>
-                <div className="flex gap-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <a
+                    href={documentFileUrl(doc.id, 'preview')}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 border border-slate-300 text-slate-600 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors"
+                  >
+                    Abrir en pestaña
+                  </a>
                   <button
                     onClick={handleDownload}
                     className="px-5 py-2 bg-navy-800 text-white text-sm font-semibold rounded-lg hover:bg-navy-900 transition-colors flex items-center gap-2 shadow-md"
                   >
-                    ↓ Descargar documento
+                    ↓ Descargar
                   </button>
                   <button
                     onClick={handleShare}
                     className="px-4 py-2 border border-slate-300 text-slate-600 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors"
                   >
-                    {copied ? '✓ Copiado' : '⬡ Compartir'}
+                    {copied ? '✓ Enlace copiado' : '⬡ Compartir'}
                   </button>
                 </div>
+              </div>
+              <div className="bg-slate-100">
+                <iframe
+                  key={doc.id}
+                  src={`${documentFileUrl(doc.id, 'preview')}#view=FitH&toolbar=1`}
+                  title={`Vista previa de ${doc.title}`}
+                  className="w-full h-[70vh] min-h-[520px] bg-white border-0"
+                />
+              </div>
+              <div className="px-5 py-3 border-t border-slate-100 text-xs text-slate-400">
+                ¿No puedes visualizar el documento?{' '}
+                <a
+                  href={documentFileUrl(doc.id, 'preview')}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-navy-600 hover:text-navy-800 font-medium"
+                >
+                  Ábrelo en una nueva pestaña
+                </a>{' '}
+                o descárgalo.
               </div>
             </div>
 

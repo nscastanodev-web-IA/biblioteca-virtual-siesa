@@ -70,7 +70,7 @@ final class DocumentController
         $user = AuthMiddleware::requireUser();
         $id = $this->idFromArgs($args);
 
-        $file = $this->documents->download($id, (int) $user['id'], $request->ip, $user['role'] === 'agente');
+        $file = $this->documents->preview($id, $user['role'] === 'agente');
 
         return Response::bytes($file['content'], 'application/pdf', 200, [
             'Content-Disposition' => 'inline; filename="' . $file['filename'] . '"',

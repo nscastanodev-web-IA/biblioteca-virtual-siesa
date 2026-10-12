@@ -76,12 +76,37 @@ final class DocumentService
     }
 
     /**
+     * Devuelve el contenido del PDF para visualizarlo en línea.
+     * No registra una descarga: solo lectura para el visor.
+     *
+     * @return array{content: string, filename: string, mime: string}
+     */
+    public function preview(int $id, bool $includeUnpublished = false): array
+    {
+        return $this->fileContent($id, $includeUnpublished);
+    }
+
+    /**
      * Registra la descarga y devuelve el contenido del PDF.
      * La respuesta binaria nunca expone la ruta real del archivo.
      *
      * @return array{content: string, filename: string, mime: string}
      */
     public function download(int $id, int $userId, string $ip, bool $includeUnpublished = false): array
+    {
+        $file = $this->fileContent($id, $includeUnpublished);
+
+        $this->documents->registerDownload($id, $userId, $ip);
+
+        return $file;
+    }
+
+    /**
+     * Lectura del archivo validando visibilidad y existencia en disco.
+     *
+     * @return array{content: string, filename: string, mime: string}
+     */
+    private function fileContent(int $id, bool $includeUnpublished): array
     {
         $row = $this->documents->findById($id);
 
@@ -94,8 +119,6 @@ final class DocumentService
         if ($file === null) {
             throw HttpException::notFound('El archivo del documento no está disponible en el servidor.');
         }
-
-        $this->documents->registerDownload($id, $userId, $ip);
 
         return [
             'content' => (string) file_get_contents($file['absolutePath']),

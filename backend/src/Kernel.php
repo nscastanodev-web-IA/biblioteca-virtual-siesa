@@ -77,7 +77,9 @@ final class Kernel
     {
         return $response
             ->withHeader('X-Content-Type-Options', 'nosniff')
-            ->withHeader('X-Frame-Options', 'DENY')
+            // SAMEORIGIN permite incrustar el visor de PDF inline en el propio sitio
+            // sin abrir la puerta a clickjacking desde otros orígenes.
+            ->withHeader('X-Frame-Options', 'SAMEORIGIN')
             ->withHeader('Referrer-Policy', 'same-origin');
     }
 }
