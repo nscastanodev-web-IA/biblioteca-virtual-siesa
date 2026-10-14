@@ -93,6 +93,8 @@ export async function apiRequest<T>(path: string, init: RequestInit = {}): Promi
 
 /** URL directa (navegador) para ver o descargar un PDF manteniendo la sesión. */
 export function documentFileUrl(id: string, action: 'download' | 'preview' = 'download'): string {
+  // En modo demostración no hay backend: servimos un PDF de ejemplo estático.
+  if (__DEMO_MODE__) return '/demo/documento.pdf';
   return `${API_URL}/documents/${id}/${action}`;
 }
 
