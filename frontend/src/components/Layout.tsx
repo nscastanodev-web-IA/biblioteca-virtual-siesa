@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useApp } from '../store/AppContext';
+import { TOUR_STEPS } from '../data/tour';
 import type { Page } from '../types';
 
 type IconName = 'home' | 'library' | 'requests' | 'bell' | 'user' | 'documents' | 'help' | 'logout' | 'menu' | 'close';
@@ -42,16 +43,6 @@ const AGENT_NAV: NavItem[] = [
   { label: 'Mi cuenta', page: 'client.profile', icon: 'user' },
 ];
 
-const TOUR_STEPS: Array<{ title: string; body: string; page: Page }> = [
-  { title: 'Busca en la biblioteca', body: 'Usa el buscador principal para encontrar documentos por título, sistema, aplicativo o palabra clave.', page: 'client.dashboard' },
-  { title: 'Aplica filtros', body: 'Combina tipo, sistema, aplicativo, versión y año para precisar los resultados.', page: 'client.library' },
-  { title: 'Consulta y descarga', body: 'Abre cualquier resultado para ver sus datos, documentos relacionados y descargar el PDF.', page: 'client.library' },
-  { title: 'Solicita un documento', body: 'Si no encuentras lo que necesitas, registra una solicitud desde la biblioteca o Mis solicitudes.', page: 'client.requests' },
-  { title: 'Revisa el avance', body: 'Consulta el estado, la línea de tiempo y las respuestas del agente en un solo lugar.', page: 'client.requests' },
-  { title: 'Mantente informado', body: 'Las novedades y solicitudes de información aparecen en tu centro de notificaciones.', page: 'client.notifications' },
-  { title: 'Elige tu apariencia', body: 'En Mi cuenta puedes cambiar entre tema claro, oscuro o la preferencia de tu sistema.', page: 'client.profile' },
-];
-
 function BrandLogo() {
   return (
     <div className="flex items-center gap-3">
@@ -67,20 +58,15 @@ interface LayoutProps {
 }
 
 export default function Layout({ children, title }: LayoutProps) {
-  const { currentUser, navigate, logout, router, unreadNotificationCount } = useApp();
+  const {
+    currentUser, navigate, logout, router, unreadNotificationCount,
+    tourStep, tourDontShowAgain, setTourDontShowAgain, startTour, goToTourStep, finishTour,
+  } = useApp();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [tourStep, setTourStep] = useState<number | null>(null);
-  const [dontShowAgain, setDontShowAgain] = useState(false);
-
-  const isAgent = currentUser?.userRole === 'agente';
-  const tourKey = currentUser ? `siesa-onboarding-${currentUser.id}` : '';
-
-  useEffect(() => {
-    if (currentUser && !isAgent && localStorage.getItem(tourKey) !== 'done') setTourStep(0);
-  }, [currentUser, isAgent, tourKey]);
 
   if (!currentUser) return null;
 
+  const isAgent = currentUser.userRole === 'agente';
   const navItems = isAgent ? AGENT_NAV : CLIENT_NAV;
   const unread = unreadNotificationCount(currentUser.id);
 
@@ -89,14 +75,9 @@ export default function Layout({ children, title }: LayoutProps) {
     setSidebarOpen(false);
   };
 
-  const finishTour = () => {
-    if (dontShowAgain || tourStep === TOUR_STEPS.length - 1) localStorage.setItem(tourKey, 'done');
-    setTourStep(null);
-  };
-
-  const goToTourStep = (next: number) => {
-    setTourStep(next);
-    navigate(TOUR_STEPS[next].page);
+  const runTourFromStart = () => {
+    startTour();
+    handleNav('client.dashboard');
   };
 
   return (
@@ -120,7 +101,7 @@ export default function Layout({ children, title }: LayoutProps) {
             </button>
           ))}
           {!isAgent && (
-            <button onClick={() => { setTourStep(0); setDontShowAgain(false); handleNav('client.dashboard'); }} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white/75 hover:bg-white/10 hover:text-white">
+            <button onClick={runTourFromStart} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white/75 hover:bg-white/10 hover:text-white">
               <Icon name="help" /> Ayuda y recorrido
             </button>
           )}
@@ -159,7 +140,7 @@ export default function Layout({ children, title }: LayoutProps) {
             <div className="h-1 bg-slate-100 rounded-full mb-6"><div className="h-1 bg-navy-600 rounded-full transition-all" style={{ width: `${((tourStep + 1) / TOUR_STEPS.length) * 100}%` }} /></div>
             <h2 id="tour-title" className="text-xl font-semibold text-slate-900 mb-2">{TOUR_STEPS[tourStep].title}</h2>
             <p className="text-sm text-slate-600 leading-relaxed">{TOUR_STEPS[tourStep].body}</p>
-            <label className="flex items-center gap-2 mt-5 text-sm text-slate-600"><input type="checkbox" checked={dontShowAgain} onChange={event => setDontShowAgain(event.target.checked)} /> No volver a mostrar</label>
+            <label className="flex items-center gap-2 mt-5 text-sm text-slate-600"><input type="checkbox" checked={tourDontShowAgain} onChange={event => setTourDontShowAgain(event.target.checked)} /> No volver a mostrar</label>
             <div className="flex items-center justify-between gap-3 mt-6">
               <button onClick={finishTour} className="text-sm text-slate-500 hover:text-slate-800">Omitir recorrido</button>
               <div className="flex gap-2">

@@ -25,6 +25,7 @@ import {
   requestsApi,
   setCsrfToken,
 } from '../services/api';
+import { TOUR_STEPS } from '../data/tour';
 
 export interface CreateRequestInput {
   clientId?: string;
@@ -71,6 +72,12 @@ interface AppContextValue {
   updateProfile: (data: ProfileUpdateInput) => Promise<boolean>;
   changePassword: (data: PasswordChangeInput) => Promise<{ ok: boolean; message: string }>;
   navigate: (page: Page, params?: Record<string, string>) => void;
+  tourStep: number | null;
+  tourDontShowAgain: boolean;
+  setTourDontShowAgain: (value: boolean) => void;
+  startTour: () => void;
+  goToTourStep: (step: number) => void;
+  finishTour: () => void;
   refresh: () => Promise<void>;
   markNotificationRead: (id: string) => void;
   markAllNotificationsRead: () => void;
@@ -125,6 +132,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     // El modo claro es el valor por defecto del entorno de desarrollo.
     return stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'light';
   });
+  // Recorrido guiado (global): sobrevive a la navegación entre páginas.
+  const [tourStep, setTourStep] = useState<number | null>(null);
+  const [tourDontShowAgain, setTourDontShowAgain] = useState(false);
 
   const errorTimer = useRef<number | null>(null);
 
@@ -150,6 +160,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     media.addEventListener('change', applyTheme);
     return () => media.removeEventListener('change', applyTheme);
   }, [theme]);
+
+  // Inicia el recorrido una sola vez por sesión de cliente. Al vivir aquí,
+  // navegar entre páginas ya no lo reinicia.
+  useEffect(() => {
+    if (!currentUser || currentUser.userRole === 'agente') return;
+    if (localStorage.getItem(`siesa-onboarding-${currentUser.id}`) === 'done') return;
+    setTourDontShowAgain(false);
+    setTourStep(0);
+  }, [currentUser?.id, currentUser?.userRole]);
 
   const setTheme = useCallback((nextTheme: ThemePreference) => {
     setThemeState(nextTheme);
@@ -182,6 +201,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setRouter({ page, params });
     window.scrollTo(0, 0);
   }, []);
+
+  const startTour = useCallback(() => {
+    setTourDontShowAgain(false);
+    setTourStep(0);
+  }, []);
+
+  const goToTourStep = useCallback((step: number) => {
+    setTourStep(step);
+    const target = TOUR_STEPS[step];
+    if (target) navigate(target.page);
+  }, [navigate]);
+
+  const finishTour = useCallback(() => {
+    if (tourDontShowAgain || tourStep === TOUR_STEPS.length - 1) {
+      if (currentUser) localStorage.setItem(`siesa-onboarding-${currentUser.id}`, 'done');
+    }
+    setTourStep(null);
+  }, [tourDontShowAgain, tourStep, currentUser]);
 
   const loadAll = useCallback(async (user: User) => {
     const isAgent = user.userRole === 'agente';
@@ -479,6 +516,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       booting, error, clearError,
       login, register, logout, navigate, refresh, theme, setTheme,
       updateProfile, changePassword,
+      tourStep, tourDontShowAgain, setTourDontShowAgain, startTour, goToTourStep, finishTour,
       markNotificationRead, markAllNotificationsRead,
       createRequest, updateRequestStatus, addComment, assignRequest,
       linkDocument, sendToProduction, cancelRequest, addDocument, updateDocument,
